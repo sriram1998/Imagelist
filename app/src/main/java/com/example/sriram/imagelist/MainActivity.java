@@ -54,8 +54,16 @@ Intent galleryIntent=new Intent(Intent.ACTION_PICK);
 }
 public void showImage(View v)
 {   currimage=0;
-    imgView.setImageBitmap(image.get(0));
-    textView.setText ("Image 1 : "+caption.get(0));
+    if(i>0)
+    {imgView.setImageBitmap(image.get(0));
+    textView.setText ("Image 1 : "+caption.get(0));}
+    else
+    {
+        i=0;
+        imgView.setImageBitmap(null);
+        textView.setText("");
+
+    }
 }
 public void next(View v)
 {
@@ -87,7 +95,6 @@ i--;
                 try {
                     inputStream=getContentResolver().openInputStream(data1);
                     image.add(BitmapFactory.decodeStream(inputStream));
-                    //caption.set(i, entercap.getText().toString());
                     caption.add(entercap.getText().toString());
                     i++;
                     showImage(v);
