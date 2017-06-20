@@ -1,5 +1,6 @@
 package com.example.sriram.imagelist;
 
+import android.content.ActivityNotFoundException;
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
@@ -22,11 +23,13 @@ import java.util.List;
 public class MainActivity extends AppCompatActivity {
 
     public static final int REQUEST_CODE = 20;
+    private static final int PIC_CROP = 2;
     View v;
     EditText entercap;
     TextView textView;
     private ImageView imgView;
     ArrayList<Bitmap> image = new ArrayList<Bitmap>();
+    List<Uri> data1 = new ArrayList<>();
 
     //String[] caption = new String[500];
     List<String> caption = new ArrayList<String>();
@@ -75,11 +78,38 @@ public void next(View v)
 
 
 }
+public void cropImage(View v)
+{
+    try {Intent cropIntent = new Intent("com.android.camera.action.CROP");
+
+        cropIntent.setDataAndType(data1.get(currimage), "image/*");
+        
+        cropIntent.putExtra("crop", "true");
+        
+        cropIntent.putExtra("aspectX", 1);
+        cropIntent.putExtra("aspectY", 1);
+        
+        cropIntent.putExtra("outputX", 256);
+        cropIntent.putExtra("outputY", 256);
+        cropIntent.putExtra("return-data", true);
+        
+        startActivityForResult(cropIntent, PIC_CROP);
+
+    }
+    catch(ActivityNotFoundException anfe){
+        //display an error message
+        String errorMessage = "Your device doesn't support the crop action!";
+        Toast toast = Toast.makeText(this, errorMessage, Toast.LENGTH_SHORT);
+        toast.show();
+    }
+}
+
 public void delete(View v)
 {
 i--;
     caption.remove(currimage);
     image.remove(currimage);
+    data1.remove(currimage);
     showImage(v);
 
 }
@@ -90,10 +120,10 @@ i--;
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         if(resultCode==RESULT_OK){
             if(requestCode==REQUEST_CODE){
-                Uri data1 = data.getData();
+                 data1.add(data.getData());
                 InputStream inputStream;
                 try {
-                    inputStream=getContentResolver().openInputStream(data1);
+                    inputStream=getContentResolver().openInputStream(data1.get(i));
                     image.add(BitmapFactory.decodeStream(inputStream));
                     caption.add(entercap.getText().toString());
                     i++;
@@ -103,6 +133,15 @@ i--;
                     Toast.makeText(this,"unable to open image", Toast.LENGTH_LONG).show();
                 }
             }
+            else
+                if(requestCode==PIC_CROP)
+                {
+                    Bundle extras = data.getExtras();
+
+                    Bitmap croppedPic = extras.getParcelable("data");
+                    image.set(currimage,croppedPic);
+                    showImage(v);
+                }
         }
 
     }
